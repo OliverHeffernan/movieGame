@@ -74,6 +74,14 @@
 	margin-top: 10px;
 }
 
+#guessButton:hover {
+	box-shadow: inset 0px -5px 0px rgba(0,0,0,0.6);
+}
+
+#guessButton:active {
+	box-shadow: inset 0px -4px 0px rgba(0,0,0,0.5);
+}
+
 .vert {
 	display: flex;
 	flex-direction: column;
@@ -100,12 +108,10 @@ let movieLoaded = ref(false);
 
 function stripPunctuation(str) {
 	let result = String(str).replace(/[^\w\s]/g, '').toLowerCase();
-	console.log(result);
 	return result;
 }
 
 function doGuess() {
-	console.log("do guess");
 	let guess = document.getElementById("guessInput").value;
 	if (guess == "") {
 		return;
@@ -113,7 +119,7 @@ function doGuess() {
 	guessCount++;
 	if (stripPunctuation(guess) == stripPunctuation(guessMovie.title)) {
 		document.getElementById("moviePoster").className = "";
-		console.log("correct");
+		addHint(guess + " is correct!!");
 	} else {
 		document.getElementById("moviePoster").className = "guess" + guessCount;
 		doHint(guessCount, guess);
@@ -208,7 +214,6 @@ async function fetchCredits(id) {
 	} catch (error) {
 		//console.error('Error fetching credits:', error);
 		//return "ERROR";
-		console.log("credits failed");
 		return data.data[sampleNumber];
 	}
 }
@@ -224,8 +229,6 @@ async function getMovie() {
 	}
 	guessMovie = movie;
 	credits = await fetchCredits(movie.id);
-	console.log(JSON.stringify(movie, null, 2));
-	console.log(JSON.stringify(credits, null, 2));
 
 	//console.log(movie.poster_path);
 	document.getElementById("moviePoster").src = "https://image.tmdb.org/t/p/w600_and_h900_bestv2/" + movie.poster_path;
