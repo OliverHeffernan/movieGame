@@ -1,105 +1,35 @@
 <template>
-	<div class="vert">
-		<img id="moviePoster" class="guess0" alt="">
-		<div id="loading" v-if="!movieLoaded">Finding a film...</div>
-		<input placeholder="Guess the movie" type="text" id="guessInput">
-		<button id="guessButton" @click="doGuess">Guess</button>
-		<div id="hints">
+	<div id="phoneContainer">
+		<div class="vert">
+			<div id="imgContainer">
+				<img id="moviePoster" :class="correct ? '' : 'guess' + guessCount" alt="">
+				<div id="loading" v-if="!movieLoaded">Finding a film...</div>
+			</div>
+			<div id="guessBox" class="closed">
+				<button id="guessButton" @click="doGuess">Guess ({{guessCount}}/6)</button>
+				<input placeholder="Guess the movie" type="text" id="guessInput">
+				<div id="hintsContainer">
+					<div id="hints">
+						<div id="topBar"></div>
+					</div>
+				</div>
+			</div>
+			<button v-if="guessCount > 0" id="scrollHintsButton" @click="scrollHints()">View your hints</button>
 		</div>
 	</div>
 </template>
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
-* {
-	background-color: rgb(25,25,25);
-	color: white;
-	font-family: "Roboto", sans-serif;
-}
-
-#loading {
-	width: min(calc(100vw - 20px), 400px);
-	height: min(calc((100vw - 20px)*1.5), 600px);
-	margin-left: 50vw;
-	transform: translateX(-50%);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-	background-color: black;
-}
-
-#hints {
-	margin-left: 50vw;
-	transform: translateX(-50%);
-	width: min(calc(100vw - 20px), 400px);
-	list-style: none;
-}
-
-#hints p {
-	padding: 10px;
-	border-top: 2px solid rgb(50,50,50);
-}
-
-#guessInput {
-	margin-left: 50vw;
-	transform: translateX(-50%);
-	width: min(calc(100vw - 20px), 400px);
-	border: 2px solid rgb(50,50,50);
-	padding: 10px;
-	border-radius: 5px;
-	font-size: 20px;
-	margin-top: 10px;
-}
-
-#moviePoster {
-	margin-left: 50vw;
-	transform: translateX(-50%);
-	width: min(calc(100vw - 20px), 400px);
-	overflow: hidden;
-	height: auto;
-	clip-path: inset(0);
-}
-
-#guessButton {
-	margin-left: 50vw;
-	transform: translateX(-50%);
-	width: min(calc(100vw - 20px), 400px);
-	padding: 10px;
-	border-radius: 10px;
-	border: none;
-	background-color: #1B82B4;
-	box-shadow: inset 0px -4px 0px rgba(0,0,0,0.5);
-	font-size: 20px;
-	margin-top: 10px;
-}
-
-#guessButton:hover {
-	box-shadow: inset 0px -5px 0px rgba(0,0,0,0.6);
-}
-
-#guessButton:active {
-	box-shadow: inset 0px -4px 0px rgba(0,0,0,0.5);
-}
-
-.vert {
-	display: flex;
-	flex-direction: column;
-}
-
-.vert > * {
-	display: block;
-}
-</style>
-
 <script setup>
+import "./styles/main.css";
+
 import { ref } from "vue";
 import SampleData from "./classes/sampleData.js";
 const data = new SampleData();
-let guessMovie;
+let guessMovie = ref("");
 let credits;
 let director;
-let guessCount = 0;
+let guessCount = ref(0);
+let correct = false;
 
 let connection = true;
 let sampleNumber = 0;
@@ -116,14 +46,20 @@ function doGuess() {
 	if (guess == "") {
 		return;
 	}
-	guessCount++;
-	if (stripPunctuation(guess) == stripPunctuation(guessMovie.title)) {
+	guessCount.value++;
+	if (stripPunctuation(guess) == stripPunctuation(guessMovie.value.title)) {
 		document.getElementById("moviePoster").className = "";
 		addHint(guess + " is correct!!");
+		correct = true;
 	} else {
-		document.getElementById("moviePoster").className = "guess" + guessCount;
-		doHint(guessCount, guess);
+		doHint(guessCount.value, guess);
 	}
+
+	scrollHints();
+}
+
+function getImage(movie) {
+	return "https://image.tmdb.org/t/p/w600_and_h900_bestv2/" + movie.poster_path;
 }
 
 function getHint(count) {
@@ -131,7 +67,7 @@ function getHint(count) {
 		return "It has actor " + credits.cast[2].name + " in it.";
 	}
 	if (count == 2) {
-		return "The movie was released on " + guessMovie.release_date;
+		return "The movie was released on " + guessMovie.value.release_date;
 	}
 	if (count == 3) {
 		return "The director is " + director;
@@ -146,10 +82,10 @@ function getHint(count) {
 
 function doHint(count, guess) {
 	if (count == 6) {
-		addHint(guess + " is incorrect. The answer is " + guessMovie.title);
+		addHint("❌" + guess + "The answer is " + guessMovie.value.title);
 	}
 	else if (count < 6) {
-		addHint(guess + " is incorrect. Hint: " + getHint(count));
+		addHint("❌" + guess + "Hint: " + getHint(count));
 	}
 }
 
@@ -172,10 +108,15 @@ async function fetchResults() {
 		const timeout = 5000;
 		const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-		const response = await fetch('https://192.168.68.59:8443/movie', {
+		//const response = await fetch('https://192.168.68.59:8443/movie', {
+		const response = await fetch('https://settling-donkey-brightly.ngrok-free.app/movie', {
 			method: 'GET',
 			signal: controller.signal,
+			headers: {
+				"ngrok-skip-browser-warning": "true"
+			}
 		});
+
 
 		clearTimeout(timeoutId);
 
@@ -184,6 +125,7 @@ async function fetchResults() {
 		}
 
 		const text = await response.text();
+		console.log(text);
 		return JSON.parse(text.substring(8));
 	} catch (error) {
 		console.error('Error fetching result:', error);
@@ -220,18 +162,19 @@ async function fetchCredits(id) {
 
 async function getMovie() {
 	let movie = await fetchResults();
-	//while (movie == null || (movie.success === false || movie.adult || movie.poster_path === null || movie.original_language != "en" || parseInt(movie.release_date.split("-")[0]) < 1970 || movie.vote_average < 7 || movie.vote_count < 7000)) {
-		//movie = await fetchResults();
-	//}
 
-	while (movie == null || (movie.success == false || movie.adult || movie.poster_path == null || movie.original_language != "en" || movie.vote_average < 7 || movie.vote_count < 6500)) {
+	while (movie == null || (movie.success == false || movie.adult || movie.poster_path == null || movie.original_language != "en" || movie.vote_average < 7.8 || movie.vote_count < 1000 || parseInt(movie.release_date.split("-")[0]) < 1965 )) {
 		movie = await fetchResults();
+		if (movie != null) {
+			console.log(movie);
+		}
 	}
-	guessMovie = movie;
+	guessMovie.value = movie;
 	credits = await fetchCredits(movie.id);
 
+
 	//console.log(movie.poster_path);
-	document.getElementById("moviePoster").src = "https://image.tmdb.org/t/p/w600_and_h900_bestv2/" + movie.poster_path;
+	document.getElementById("moviePoster").src = getImage(movie);
 
 	for (let i = 0; i < credits.crew.length; i++) {
 		if (credits.crew[i].job == "Director" || credits.crew[i].known_for_department == "Directing") {
@@ -241,28 +184,29 @@ async function getMovie() {
 	}
 
 	movieLoaded.value = true;
+	document.getElementById("guessBox").className = "open";
 }
+
+function scrollHints() {
+	console.log("scrolled");
+	let elm = document.getElementById("hintsContainer");
+	elm.scrollTo({ top: elm.scrollHeight, behaviour: 'smooth' });
+}
+
+/*
+onMounted(() => {
+	let elm = document.getElementById("hintsContainer");
+	elm.addEventListener('scroll', () => {
+		const halfway = elm.scrollHeight / 3;
+		const current = elm.scrollTop + elm.clientHeight;
+
+		if (current < halfway) {
+			elm.scrollTo({ top: halfway, behavious: 'smooth' });
+		}
+	});
+});
+*/
 
 getMovie();
-</script>
 
-<style>
-.guess0 {
-	filter: blur(60px);
-}
-.guess1 {
-	filter: blur(55px);
-}
-.guess2 {
-	filter: blur(45px);
-}
-.guess3 {
-	filter: blur(30px);
-}
-.guess4 {
-	filter: blur(25px);
-}
-.guess5 {
-	filter: blur(20px);
-}
-</style>
+</script>
