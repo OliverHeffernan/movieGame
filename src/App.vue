@@ -1,25 +1,179 @@
 <template>
 	<div id="phoneContainer" @scroll="loadMore">
-		<MovieContainer v-for="n in numLoaded" :key="n" :index="n - 1" />
+		<div v-if="movies.length == 0">Loading</div>
+		<MovieContainer v-else v-for="(movie, n) in movies" :key="n" :index="n - 1" :movie="movie.movie" :credits="movie.credits" />
+		<!--
+<MovieContainer :movie="data.data[0].movie" :index="0" :credits="{cast: data.data[0].cast, crew: data.data[0].crew}" />
+<MovieContainer :movie="data.data[1].movie" :index="1" :credits="{cast: data.data[1].cast, crew: data.data[1].crew}" />
+-->
 	</div>
 </template>
 
 <script setup>
 import "./styles/main.css";
+//import SampleData from "./classes/sampleData.js";
 import MovieContainer from "./components/MovieContainer.vue";
-import { ref } from "vue";
+//const data = new SampleData();
 
-const numLoaded = ref(10);
+import { ref, onMounted } from "vue";
 
-let loading = false;
+//let page = await getPage().results;
+let page = [];
+const movies = ref([]);
+
+
+let loadings = 0;
+let fetching = false;
+
+onMounted(async () => {
+	for (let i = 0; i < 10; i++) {
+		await addMovie();
+	}
+});
+
+async function addMovie() {
+	if (page.length == 0) {
+		const temp = await getPage();
+		page = temp.results;
+	}
+
+	let index = getRandomInt(0, page.length - 1);
+
+	let movie = page[index];
+	page.splice(index, 1);
+
+	if (page.length == 0) {
+		const temp = await getPage();
+		page = temp.results;
+	}
+	while (movie == null || (movie.success == false || movie.adult || movie.poster_path == null || movie.original_language != "en" || movie.vote_count < 1500 || parseInt(movie.release_date.split("-")[0]) < 1965 )) {
+		index = getRandomInt(0, page.length);
+		movie = page[index];
+
+		page.splice(index, 1);
+		if (page.length == 0) {
+			const temp = await getPage();
+			page = temp.results;
+		}
+	}
+
+	let credits = await fetchCredits(movie.id);
+	while (credits == "ERROR") {
+		credits = await fetchCredits(movie.id);
+	}
+	movies.value.push({
+		movie: movie,
+		credits: credits
+	});
+}
 
 async function loadMore() {
-	if (!loading) {
-		numLoaded.value++;
-		loading = true;
+	console.log("scrolling", loadings);
+	if (loadings == 0 && !fetching) {
+		//numLoaded.value++;
+		await addMovie();
+		loadings++;
 		setTimeout(() => {
-			loading = false;
-		}, 1000);
+			loadings--;
+		}, 2000);
+
+	}
+}
+
+async function fetchResults() {
+	console.log("fetching");
+	fetching = true;
+	try {
+		const controller = new AbortController();
+		const timeout = 5000;
+		const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+		//const response = await fetch('https://192.168.68.59:8443/movie', {
+		const response = await fetch('https://settling-donkey-brightly.ngrok-free.app/movie', {
+			method: 'GET',
+			signal: controller.signal,
+			headers: {
+				"ngrok-skip-browser-warning": "true"
+			}
+		});
+
+		clearTimeout(timeoutId);
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+
+		const text = await response.text();
+		//console.log(text);
+		fetching = false;
+		return JSON.parse(text.substring(8));
+	} catch (error) {
+		console.error('Error fetching result:', error);
+		//return "ERROR";
+		//connection = false;
+		//console.log("connection failed");
+		//sampleNumber = getRandomInt(0, data.data.length - 1);
+		//console.log(sampleNumber);
+		//return data.data[getRandomInt(0, data.data.length - 1)].movie;
+		fetching = false;
+		return "ERROR";
+	}
+}
+
+function getRandomInt(a, b) {
+	const min = Math.ceil(Math.min(a, b));
+	const max = Math.floor(Math.max(a, b));
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/*
+async function getPage() {
+	let _page = await fetchResults();
+	console.log(_page);
+	while (_page == "ERROR" || !_page || !_page.results) {
+		_page = await fetchResults();
+	}
+	return _page;
+}
+*/
+async function getPage() {
+	let _page = await fetchResults();
+	while (
+		_page === "ERROR" ||
+		!_page ||
+		typeof _page !== "object" ||
+		!Array.isArray(_page.results)
+	) {
+		console.warn("getPage: retrying due to invalid data", _page);
+		_page = await fetchResults();
+	}
+
+	return _page;
+}
+
+async function fetchCredits(id) {
+	try {
+		const response = await fetch('https://settling-donkey-brightly.ngrok-free.app/credits/' + id, {
+			method: 'GET',
+			headers: {
+				"ngrok-skip-browser-warning": "true"
+			}
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+
+		const text = await response.text();
+
+		return JSON.parse(text.substring(8));
+	} catch (error) {
+		return "ERROR";
+		/*
+		} else {
+			return data.data[sampleNumber];
+		}
+		*/
 	}
 }
 </script>
