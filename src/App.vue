@@ -1,7 +1,9 @@
 <template>
 	<div id="phoneContainer" @scroll="loadMore">
-		<div v-if="movies.length == 0">Loading</div>
-		<MovieContainer v-else v-for="(movie, n) in movies" :key="n" :index="n - 1" :movie="movie.movie" :credits="movie.credits" />
+		<TutInfo />
+		<!--<div v-if="movies.length == 0">Loading</div>-->
+		<LoadingScreen :open="movies.length == 0" />
+		<MovieContainer v-for="(movie, n) in movies" :key="n" :index="n - 1" :movie="movie.movie" :credits="movie.credits" />
 		<!--
 <MovieContainer :movie="data.data[0].movie" :index="0" :credits="{cast: data.data[0].cast, crew: data.data[0].crew}" />
 <MovieContainer :movie="data.data[1].movie" :index="1" :credits="{cast: data.data[1].cast, crew: data.data[1].crew}" />
@@ -13,6 +15,8 @@
 import "./styles/main.css";
 //import SampleData from "./classes/sampleData.js";
 import MovieContainer from "./components/MovieContainer.vue";
+import TutInfo from "./components/TutInfo.vue";
+import LoadingScreen from "./components/LoadingScren.vue";
 //const data = new SampleData();
 
 import { ref, onMounted } from "vue";

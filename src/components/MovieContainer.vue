@@ -100,6 +100,20 @@ function showInfo() {
 
 function stripPunctuation(str) {
 	let result = String(str).replace(/[^\w\s]/g, '').toLowerCase();
+	const nilWords = [
+		"and",
+		"the",
+		"a",
+		"of"
+	];
+
+	nilWords.forEach((word) => {
+		result.replaceAll(" " + word, " ", "");
+		if (result.startsWith(word + " ")) {
+			result = result.substring(word.length + 1);
+		}
+	});
+
 	return result;
 }
 
