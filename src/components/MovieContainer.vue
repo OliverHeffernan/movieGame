@@ -2,22 +2,55 @@
 <template>
 	<div class="vertContainer">
 		<div class="vert">
-			<img :src="getImage(movie)" name="moviePosterBlurredBg" class="moviePosterBlurredBg" alt="">
-			<div id="imgContainer" @mousedown="hideInfo()" @mouseup="showInfo()">
-				<img :src="getImage(props.movie)" name="moviePoster" id="moviePoster" :class="correct ? '' : 'guess' + guessCount" alt="">
-				<!--<div id="loading" v-if="!movieLoaded">Finding a film...</div>-->
+			<img 
+				:src="getImage(movie)"
+				class="moviePosterBlurredBg"
+				alt=""
+			>
+			<div
+				id="imgContainer"
+				@mousedown="hideInfo()"
+				@mouseup="showInfo()"
+				@touchstart="hideInfo()"
+				@touchend="showInfo()"
+			>
+				<img
+					:src="getImage(props.movie)"
+					id="moviePoster"
+					:class="correct ? '' : 'guess' + guessCount"
+					alt=""
+				>
 			</div>
-			<div id="guessBox" :class="guessBoxShowing ? 'open' : 'closed'">
-				<button id="guessButton" @click="doGuess">{{guessInput == "" ? 'Skip for hint' : 'Guess'}} ({{guessCount}}/6)</button>
-				<input v-model="guessInput" name="guessInput" placeholder="Guess the movie" type="text" id="guessInput" v-on:keyup.enter="doGuess()">
-				<div id="hintsContainer" class="hintsContainer">
-					<!--
-					<div id="hints" class="hints">
-						<div id="topBar"></div>
-					</div>
-					-->
-					<div id="hints" class="hints">
-						<p v-for="(hint, n) in hints" :key="n">{{hint}}</p>
+			<div
+				id="guessBox"
+				:class="guessBoxShowing ? 'open' : 'closed'"
+			>
+				<button 
+					id="guessButton"
+					@click="doGuess">{{guessInput == "" ? 'Skip for hint' : 'Guess'}} ({{guessCount}}/6)
+				</button>
+				<input 
+					v-model="guessInput" 
+					name="guessInput" 
+					placeholder="Guess the movie" 
+					type="text" 
+					id="guessInput" 
+					v-on:keyup.enter="doGuess()"
+				>
+				<div
+					id="hintsContainer"
+					class="hintsContainer"
+				>
+					<div
+						id="hints"
+						class="hints"
+					>
+						<p
+							v-for="(hint, n) in hints"
+							:key="n"
+						>
+							{{hint}}
+						</p>
 					</div>
 				</div>
 			</div>

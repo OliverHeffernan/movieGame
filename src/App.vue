@@ -26,6 +26,8 @@ let loadings = 0;
 let fetching = false;
 
 onMounted(async () => {
+	const vh = window.innerHeight * 0.01;
+	document.documentElement.style.setProperty('--vh', `${vh}px`);
 	for (let i = 0; i < 10; i++) {
 		await addMovie();
 	}

@@ -39,6 +39,18 @@ body {
 
 	top: 35%;
 	transform: translateY(-35%);
+
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+img {
+	user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-user-drag: none;
+	-webkit-touch-callout: none;
+	pointer-events: none;
 }
 
 #hintsContainer {
@@ -133,7 +145,8 @@ body {
 .vertContainer {
 	display: block;
 	position: relative;
-	height: min(calc(100vh - 40px), calc(1200px - 40px));
+	/*height: min(calc(100vh - 40px), calc(1200px - 40px));*/
+	height: min(calc(var(--vh, 1vh) * 100 - 40px), calc(1200px - 40px));
 	width: 100%;
 	scroll-snap-align: start;
 	margin: 0;
@@ -162,7 +175,7 @@ body {
 	flex-direction: column;*/
 	/*padding: 0 40px;*/
 	margin-top: 20px;
-	height: min(calc(100vh - 40px), calc(1200px - 40px));
+	height: min(calc(var(--vh, 1vh) * 100 - 40px), calc(1200px - 40px));
 	width: min(calc(100vw - 70px), calc(500px - 80px));
 	background-color: rgb(25,25,25);
 
@@ -189,7 +202,8 @@ body {
 	#phoneContainer {
 		margin: 0;
 		width: 100vw;
-		height: 100vh;
+		/*height: 100vh;*/
+		height: calc(var(--vh, 1vh) * 100);
 		border-radius: 0;
 		overflow-y: auto;
 		scroll-snap-type: y mandatory;
@@ -200,7 +214,8 @@ body {
 	}
 	.vertContainer {
 		scroll-snap-align: start;
-		height: 100vh;
+		/*height: 100vh;*/
+		height: calc(var(--vh, 1vh) * 100);
 	}
 }
 /*
@@ -231,7 +246,7 @@ body {
 }
 
 #guessBox {
-	transition: height 0.4s;
+	/*transition: height 0.4s;*/
 	z-index: 2;
 
 	position: absolute;
