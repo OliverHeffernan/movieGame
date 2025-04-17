@@ -33,7 +33,6 @@ const messages = [
 	"To infinity... and beyon-wait, still loading.",
 	"The name's Screen, Loading Screen.",
 ];
-console.log(messages[0]);
 
 
 </script>

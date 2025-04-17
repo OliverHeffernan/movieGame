@@ -1,6 +1,7 @@
 <template>
 	<div id="phoneContainer" @scroll="loadMore">
 		<TutInfo />
+		<!--<div v-if="movies.length == 0">Loading</div>-->
 		<LoadingScreen :open="movies.length == 0" />
 		<MovieContainer v-for="(movie, n) in movies" :key="n" :index="n - 1" :movie="movie.movie" />
 		<!--
@@ -45,6 +46,23 @@ async function addMovie() {
 	page.splice(index, 1);
 
 	await checkForMorePages();
+	while (movie == null || (movie.success == false || movie.adult || movie.poster_path == null || movie.original_language != "en" || movie.vote_count < 1500 || parseInt(movie.release_date.split("-")[0]) < 1965 )) {
+		index = getRandomInt(0, page.length);
+		movie = page[index];
+
+		page.splice(index, 1);
+		await checkForMorePages();
+	}
+
+	/*let credits = await fetchCredits(movie.id);
+
+	let attempts = 0;
+	const maxAttempts = 5;
+	while (credits == "ERROR" && attempts < maxAttempts) {
+		credits = await fetchCredits(movie.id);
+		attempts++;
+	}
+	*/
 	
 	movies.value.push({
 		movie: movie,
@@ -56,6 +74,7 @@ async function checkForMorePages() {
 	if (page.length == 0) {
 		const temp = await getPage();
 		page = temp.results;
+		console.log(page);
 	}
 }
 
@@ -78,6 +97,7 @@ async function fetchResults() {
 		const timeout = 10000;
 		const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+		//const response = await fetch('https://192.168.68.59:8443/movie', {
 		console.log("fetching");
 		const response = await fetch('https://settling-donkey-brightly.ngrok-free.app/movie', {
 			method: 'GET',
@@ -94,9 +114,17 @@ async function fetchResults() {
 		}
 
 		const text = await response.text();
+		//console.log(text);
 		fetching = false;
 		return JSON.parse(text);
 	} catch (error) {
+		console.error('Error fetching result:', error);
+		//return "ERROR";
+		//connection = false;
+		//console.log("connection failed");
+		//sampleNumber = getRandomInt(0, data.data.length - 1);
+		//console.log(sampleNumber);
+		//return data.data[getRandomInt(0, data.data.length - 1)].movie;
 		fetching = false;
 		return "ERROR";
 	}
@@ -108,6 +136,16 @@ function getRandomInt(a, b) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+/*
+async function getPage() {
+	let _page = await fetchResults();
+	console.log(_page);
+	while (_page == "ERROR" || !_page || !_page.results) {
+		_page = await fetchResults();
+	}
+	return _page;
+}
+*/
 async function getPage() {
 	let _page = await fetchResults();
 	while (
@@ -119,8 +157,33 @@ async function getPage() {
 		console.warn("getPage: retrying due to invalid data", _page);
 		_page = await fetchResults();
 	}
+	console.log("page loaded");
 
 	return _page;
 }
 
+/*
+async function fetchCredits(id) {
+	try {
+		console.log("fetching");
+		const response = await fetch('https://settling-donkey-brightly.ngrok-free.app/credits/' + id, {
+			method: 'GET',
+			headers: {
+				"ngrok-skip-browser-warning": "true"
+			}
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+
+		const text = await response.text();
+
+		return JSON.parse(text.substring(8));
+	} catch (error) {
+		console.log("fetched error");
+		return "ERROR";
+	}
+}
+*/
 </script>

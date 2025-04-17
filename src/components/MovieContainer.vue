@@ -63,32 +63,17 @@
 import { ref, defineProps } from "vue";
 //import SampleData from "../classes/sampleData.js";
 
-const props = defineProps(['index', 'movie', 'credits']);
+const props = defineProps(['index', 'movie']);
 
 //const data = new SampleData();
-let director = getDirector(props.credits);
 let guessCount = ref(0);
 let correct = false;
-
-//let connection = true;
-//let sampleNumber = 0;
 
 let guessBoxShowing = ref(true);
 
 const guessInput = ref("");
 
 const hints = ref([]);
-function getDirector(credits) {
-	let result = "";
-	for (let i = 0; i < credits.crew.length; i++) {
-		if (credits.crew[i].job == "Director" || credits.crew[i].known_for_department == "Directing") {
-			result = credits.crew[i].name;
-			break;
-		}
-	}
-
-	return result;
-}
 
 function hideInfo() {
 	guessBoxShowing.value = false;
@@ -99,20 +84,41 @@ function showInfo() {
 }
 
 function stripPunctuation(str) {
-	let result = String(str).replace(/[^\w\s]/g, '').toLowerCase();
+	const diacriticsMap = {
+		'ā': 'a', 'ē': 'e', 'ī': 'i', 'ō': 'o', 'ū': 'u', // Macrons
+		'á': 'a', 'à': 'a', 'ä': 'a', 'â': 'a', 'ã': 'a', 'å': 'a', // Accents
+		'é': 'e', 'è': 'e', 'ë': 'e', 'ê': 'e', // Accents
+		'í': 'i', 'ì': 'i', 'ï': 'i', 'î': 'i', // Accents
+		'ó': 'o', 'ò': 'o', 'ö': 'o', 'ô': 'o', 'õ': 'o', // Accents
+		'ú': 'u', 'ù': 'u', 'ü': 'u', 'û': 'u', // Accents
+		'ç': 'c', 'ñ': 'n', 'ş': 's', 'ý': 'y', // Other accents and letters
+		'Á': 'A', 'À': 'A', 'Ä': 'A', 'Â': 'A', 'Ã': 'A', 'Å': 'A', // Uppercase accents
+		'É': 'E', 'È': 'E', 'Ë': 'E', 'Ê': 'E', // Uppercase accents
+		'Í': 'I', 'Ì': 'I', 'Ï': 'I', 'Î': 'I', // Uppercase accents
+		'Ó': 'O', 'Ò': 'O', 'Ö': 'O', 'Ô': 'O', 'Õ': 'O', // Uppercase accents
+		'Ú': 'U', 'Ù': 'U', 'Ü': 'U', 'Û': 'U', // Uppercase accents
+		'Ç': 'C', 'Ñ': 'N', 'Ş': 'S', 'Ý': 'Y', // Uppercase other accents
+	};
+
+	let result = str.replace(/[āēīōūáàäâãåéèëêíìïîóòöôõúùüûçñşýÁÀÄÂÃÅÉÈËÊÍÌÏÎÓÒÖÔÕÚÙÜÛÇÑŞÝ]/g, match => diacriticsMap[match] || match);
+	result = String(result).replace(/[^\w\s]/g, '').toLowerCase();
 	const nilWords = [
 		"and",
 		"the",
 		"a",
+		"an",
 		"of"
 	];
 
-	nilWords.forEach((word) => {
-		result.replaceAll(" " + word, " ", "");
-		if (result.startsWith(word + " ")) {
-			result = result.substring(word.length + 1);
+	let words = result.split(" ");
+	let resWords = [];
+	words.forEach((word) => {
+		if (!nilWords.includes(word)) {
+			resWords.push(word);
 		}
 	});
+
+	result = resWords.join('');
 
 	return result;
 }
@@ -139,19 +145,19 @@ function getImage(movie) {
 
 function getHint(count) {
 	if (count == 1) {
-		return "It has actor " + props.credits.cast[2].name + " in it.";
+		return "It has actor " + props.movie.cast[2] + " in it.";
 	}
 	if (count == 2) {
 		return "The movie was released on " + props.movie.release_date;
 	}
 	if (count == 3) {
-		return "The director is " + director;
+		return "The director is " + props.movie.director;
 	}
 	if (count == 4) {
-		return "It also has actor " + props.credits.cast[1].name + " in it.";
+		return "It also has actor " + props.movie.cast[1] + " in it.";
 	}
 	if (count == 5) {
-		return "It also has the actor " + props.credits.cast[0].name + " in it.";
+		return "It also has the actor " + props.movie.cast[0] + " in it.";
 	}
 }
 
@@ -165,13 +171,6 @@ function doHint(count, guess) {
 }
 
 function addHint(text) {
-	/*
-	const ul = document.getElementsByClassName("hints")[props.index];
-	const li = document.createElement('p');
-	li.innerText = text;
-	ul.appendChild(li);
-	*/
-
 	hints.value.push(text);
 }
 
