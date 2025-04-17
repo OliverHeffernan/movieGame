@@ -1,5 +1,5 @@
 # movie-game
-This is a simple guess the movie game. It uses the [[TMDb - https://www.themoviedb.org/]] API for the movie data. The API is accessed through a [[Rust backend - https://github.com/OliverHeffernan/movieGameBackend]] running on a raspberry pi.
+This is a simple guess the movie game. It uses the [TMDb](https://www.themoviedb.org/) API for the movie data. The API is accessed through a [Rust backend](https://github.com/OliverHeffernan/movieGameBackend) running on a raspberry pi.
 
 ## Frontend
 The front end is written in vuejs.
