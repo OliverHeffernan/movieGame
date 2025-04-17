@@ -7,7 +7,7 @@ The front end is written in vuejs.
 ## Instructions
 - Enter your guess in the input field at the bottom of the screen.
 - You will get a hint after every guess. And the poster will become less blurred.
-- If you have no clue you can press the "skip for hint" button, to sip this guess and get a hint.
+- If you have no clue you can press the "skip for hint" button, to skip this guess and get a hint.
 - You have a maximum of 6 guesses.
 
 ## Project setup
