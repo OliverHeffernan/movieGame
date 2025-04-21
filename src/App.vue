@@ -131,7 +131,7 @@ async function getPage() {
 	*/
 
 
-	console.log(_page);
+	console.log(JSON.stringify(_page));
 	return _page;
 }
 
