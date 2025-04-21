@@ -110,16 +110,28 @@ function getRandomInt(a, b) {
 
 async function getPage() {
 	let _page = await fetchResults();
+	let attempts = 0;
 	while (
-		_page === "ERROR" ||
-		!_page ||
-		typeof _page !== "object" ||
-		!Array.isArray(_page.results)
+		(
+			_page === "ERROR" ||
+			!_page ||
+			typeof _page !== "object" ||
+			!Array.isArray(_page.results)
+		) &&
+		attempts < 5
 	) {
 		console.warn("getPage: retrying due to invalid data", _page);
 		_page = await fetchResults();
+		attempts++;
 	}
 
+	/*
+	if (_page === "ERROR") {
+		_page = data.data
+	*/
+
+
+	console.log(_page);
 	return _page;
 }
 
