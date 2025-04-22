@@ -1,5 +1,5 @@
 <template>
-	<div id="load" :class="open ? 'open' : 'closed'">
+	<div id="load" class="open">
 		<div id="blob">
 			<i class="fa-solid fa-spinner"></i>
 			<h4>{{ messages[getRandomInt(0, messages.length - 1)] }}</h4>
@@ -7,8 +7,6 @@
 	</div>
 </template>
 <script setup>
-import { defineProps } from "vue";
-defineProps(['open']);
 
 function getRandomInt(a, b) {
 	const min = Math.ceil(Math.min(a, b));
@@ -45,6 +43,7 @@ const messages = [
 	background-color: black;
 
 	transition: all 0.2s;
+	scroll-snap-align: start;
 }
 
 @keyframes spin {

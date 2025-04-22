@@ -1,26 +1,25 @@
 <template>
 	<div id="phoneContainer" @scroll="loadMore">
+		<NoConnection :connection="connection"/>
 		<TutInfo />
-		<LoadingScreen :open="movies.length == 0" />
 		<MovieContainer v-for="(movie, n) in movies" :key="n" :index="n - 1" :movie="movie.movie" />
-		<!--
-<MovieContainer :movie="data.data[0].movie" :index="0" :credits="{cast: data.data[0].cast, crew: data.data[0].crew}" />
-<MovieContainer :movie="data.data[1].movie" :index="1" :credits="{cast: data.data[1].cast, crew: data.data[1].crew}" />
--->
+		<LoadingScreen />
 	</div>
 </template>
 
 <script setup>
 import "./styles/main.css";
-//import SampleData from "./classes/sampleData.js";
+import SampleData from "./classes/sampleData.js";
 import MovieContainer from "./components/MovieContainer.vue";
 import TutInfo from "./components/TutInfo.vue";
 import LoadingScreen from "./components/LoadingScren.vue";
-//const data = new SampleData();
+import NoConnection from "./components/NoConnection.vue";
+const data = new SampleData();
+
+let connection = ref(true);
 
 import { ref, onMounted } from "vue";
 
-//let page = await getPage().results;
 let page = [];
 const movies = ref([]);
 
@@ -45,11 +44,12 @@ async function addMovie() {
 	page.splice(index, 1);
 
 	await checkForMorePages();
-	
-	movies.value.push({
-		movie: movie,
-		credits: movie.credits
-	});
+
+	if (movie != undefined) {	
+		movies.value.push({
+			movie: movie
+		});
+	}
 }
 
 async function checkForMorePages() {
@@ -61,7 +61,6 @@ async function checkForMorePages() {
 
 async function loadMore() {
 	if (loadings == 0 && !fetching) {
-		//numLoaded.value++;
 		await addMovie();
 		loadings++;
 		setTimeout(() => {
@@ -78,7 +77,6 @@ async function fetchResults() {
 		const timeout = 10000;
 		const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-		console.log("fetching");
 		const response = await fetch('https://settling-donkey-brightly.ngrok-free.app/movie', {
 			method: 'GET',
 			signal: controller.signal,
@@ -109,7 +107,13 @@ function getRandomInt(a, b) {
 }
 
 async function getPage() {
-	let _page = await fetchResults();
+	let _page;
+	if (connection.value) {
+		_page = await fetchResults();
+	}
+	else {
+		return getSampleData();
+	}
 	let attempts = 0;
 	while (
 		(
@@ -118,21 +122,33 @@ async function getPage() {
 			typeof _page !== "object" ||
 			!Array.isArray(_page.results)
 		) &&
-		attempts < 5
+		attempts < 5 &&
+		connection.value
 	) {
 		console.warn("getPage: retrying due to invalid data", _page);
 		_page = await fetchResults();
 		attempts++;
 	}
+	if (connection.value == false) {
+		return getSampleData();
+	} else if (_page === "ERROR") {
+		connection.value = false;
+		return getSampleData();
+	}
 
-	/*
-	if (_page === "ERROR") {
-		_page = data.data
-	*/
-
-
-	console.log(JSON.stringify(_page));
 	return _page;
+}
+
+function getSampleData() {
+	let returning = {
+		"results": []
+	};
+
+	for (let i = 0; i < data.data.results.length - 1; i++) {
+		returning.results.push(data.data.results[i]);
+	}
+
+	return returning;
 }
 
 </script>
